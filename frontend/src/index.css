@@ -1,0 +1,451 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Orbitron:wght@400;500;700;900&display=swap');
+
+:root {
+  --primary: #00f0ff;
+  /* Cyan */
+  --secondary: #ff003c;
+  /* Neon Pink */
+  --accent: #b000ff;
+  /* Purple */
+  --bg-dark: #050508;
+  /* Deep Void */
+  --bg-panel: rgba(10, 10, 15, 0.85);
+  --text-main: #e0f2fe;
+  --text-muted: #64748b;
+  --terminal-green: #39ff14;
+  --warning: #f59e0b;
+}
+
+/* Tactical HUD Elements */
+.hud-visor {
+  background: linear-gradient(to bottom,
+      rgba(0, 240, 255, 0.1) 0%,
+      rgba(0, 0, 0, 0) 20%,
+      rgba(0, 0, 0, 0) 80%,
+      rgba(0, 240, 255, 0.05) 100%);
+  pointer-events: none;
+}
+
+.tactical-bar-segment {
+  height: 8px;
+  width: 25px;
+  transform: skewX(-25deg);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tactical-bar-segment.active {
+  background: var(--terminal-green);
+  box-shadow: 0 0 10px var(--terminal-green);
+  border-color: #fff;
+}
+
+.tactical-bar-segment.danger {
+  background: var(--secondary);
+  box-shadow: 0 0 10px var(--secondary);
+  animation: pulseDanger 0.5s infinite;
+}
+
+.radar-scanline {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(to right, var(--primary), transparent);
+  transform-origin: left center;
+  animation: radarRotate 2s linear infinite;
+}
+
+@keyframes radarRotate {
+  from {
+    transform: rotate(0deg) translate(0, -50%);
+  }
+
+  to {
+    transform: rotate(360deg) translate(0, -50%);
+  }
+}
+
+.blip-node {
+  animation: blipAnim 1.5s ease-out infinite;
+}
+
+@keyframes blipAnim {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Fira Code', monospace;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* CRT Scanline Overlay */
+body::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  /* subtle radial glow in background */
+  background: radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(176, 0, 255, 0.05) 0%, transparent 50%);
+}
+
+/* Premium Diegetic Glassmorphism */
+.glass-panel {
+  background: linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(5, 5, 10, 0.8) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+
+  /* Multi-layer shadow for realistic depth */
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.8),
+    inset 0 0 40px rgba(0, 240, 255, 0.03),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.05);
+
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+
+  /* Sublte 3D projection */
+  transform: perspective(1000px) rotateX(1deg);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.glass-panel:hover {
+  transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+/* Brushed Metal / Carbon Fiber Texture Overlay */
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 10px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 10px);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Sci-fi panel accents */
+.panel-corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-color: var(--primary);
+  border-style: solid;
+  pointer-events: none;
+  filter: drop-shadow(0 0 5px var(--primary));
+}
+
+.corner-tl {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+}
+
+.corner-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 2px 2px 0;
+}
+
+
+/* Form Elements */
+input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  color: var(--primary);
+  border-radius: 2px;
+  font-family: 'Fira Code', monospace;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input::placeholder {
+  color: rgba(0, 240, 255, 0.3);
+}
+
+input:focus {
+  border-color: var(--primary);
+  background: rgba(0, 240, 255, 0.05);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+/* Buttons */
+.btn-primary {
+  background: transparent;
+  color: var(--primary);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  padding: 14px 28px;
+  border: 1px solid var(--primary);
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+.btn-primary:hover {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.3);
+  text-shadow: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--text-main);
+}
+
+/* Danger Button Variation */
+.btn-danger {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.1);
+}
+
+.btn-danger:hover {
+  background: var(--secondary);
+  color: #000;
+  box-shadow: 0 0 20px rgba(255, 0, 60, 0.5);
+}
+
+/* Terminal Authentication Styles */
+.terminal-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 2rem;
+}
+
+.terminal-box {
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: crtTurnOn 0.6s ease-out forwards;
+}
+
+.glitch-text {
+  text-align: center;
+  font-size: 2.2rem;
+  color: #fff;
+  text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
+  animation: glitch 3s infinite alternate;
+  position: relative;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Animations */
+@keyframes crtTurnOn {
+  0% {
+    transform: scale(1, 0.001) translate3d(0, 0, 0);
+    filter: brightness(10);
+    opacity: 0;
+  }
+
+  20% {
+    transform: scale(1, 0.001) translate3d(0, 0, 0);
+    filter: brightness(5);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1, 0.05) translate3d(0, 0, 0);
+    filter: brightness(2);
+  }
+
+  100% {
+    transform: scale(1, 1) translate3d(0, 0, 0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes glitch {
+  0% {
+    text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
+  }
+
+  5% {
+    text-shadow: -2px 2px var(--secondary), 2px -2px var(--primary);
+  }
+
+  10% {
+    text-shadow: 2px -2px var(--secondary), -2px 2px var(--primary);
+  }
+
+  15% {
+    transform: translateX(2px);
+  }
+
+  20% {
+    transform: translateX(-2px);
+  }
+
+  25% {
+    transform: translateX(0);
+    text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
+  }
+
+  100% {
+    text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 5px var(--primary), inset 0 0 5px var(--primary);
+  }
+
+  50% {
+    box-shadow: 0 0 20px var(--primary), inset 0 0 10px var(--primary);
+  }
+
+  100% {
+    box-shadow: 0 0 5px var(--primary), inset 0 0 5px var(--primary);
+  }
+}
+
+@keyframes pulseDanger {
+  0% {
+    background: rgba(255, 0, 60, 0.1);
+  }
+
+  50% {
+    background: rgba(255, 0, 60, 0.3);
+  }
+
+  100% {
+    background: rgba(255, 0, 60, 0.1);
+  }
+}
+
+/* Decoding Text Animation */
+.decoding-text {
+  font-family: 'Fira Code', monospace;
+  position: relative;
+  display: inline-block;
+}
+
+/* Horizontal Slider Cleanup */
+.hero-slider::-webkit-scrollbar {
+  height: 4px;
+}
+
+.hero-slider::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.hero-slider::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.scanline-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px var(--primary);
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}

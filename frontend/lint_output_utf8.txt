@@ -1,0 +1,270 @@
+﻿
+> frontend@0.0.0 lint
+> eslint .
+
+
+G:\Projects\game\frontend\src\components\game\GameEngine.jsx
+    4:30   error  'useTexture' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-unused-vars
+  176:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  174 |     return (
+  175 |         <group>
+> 176 |             {buildingsRef.current.map(b => (
+      |              ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  177 |                 <mesh key={b.id} position={[b.x, b.h / 2, b.z]}>
+  178 |                     <boxGeometry args={[b.w, b.h, b.w]} />
+  179 |                     <meshStandardMaterial                                                                                                                                                                                                                                                             react-hooks/refs
+  176:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  174 |     return (
+  175 |         <group>
+> 176 |             {buildingsRef.current.map(b => (
+      |              ^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  177 |                 <mesh key={b.id} position={[b.x, b.h / 2, b.z]}>
+  178 |                     <boxGeometry args={[b.w, b.h, b.w]} />
+  179 |                     <meshStandardMaterial                                                                                                                                                                                                                                                         react-hooks/refs
+  218:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  216 |     return (
+  217 |         <group ref={rainRef}>
+> 218 |             {pointsRef.current.map((p, i) => (
+      |              ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  219 |                 <mesh key={i} position={p.pos}>
+  220 |                     <boxGeometry args={[0.02, 0.4, 0.02]} />
+  221 |                     <meshStandardMaterial color="#00f0ff" emissive="#00f0ff" emissiveIntensity={2} transparent opacity={0.6} />                                                                                                                                                                         react-hooks/refs
+  218:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  216 |     return (
+  217 |         <group ref={rainRef}>
+> 218 |             {pointsRef.current.map((p, i) => (
+      |              ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  219 |                 <mesh key={i} position={p.pos}>
+  220 |                     <boxGeometry args={[0.02, 0.4, 0.02]} />
+  221 |                     <meshStandardMaterial color="#00f0ff" emissive="#00f0ff" emissiveIntensity={2} transparent opacity={0.6} />                                                                                                                                                                     react-hooks/refs
+  468:17   error  Error: This value cannot be modified
+
+Modifying component props or hook arguments is not allowed. Consider using a local variable instead.
+
+  466 |
+  467 |             if (dist > 0.5 && dist < 15) { // Agro range
+> 468 |                 node.x += (ndx / dist) * node.moveSpeed * delta;
+      |                 ^^^^ `gameStateRef` cannot be modified
+  469 |                 node.z += (ndz / dist) * node.moveSpeed * delta;
+  470 |             }
+  471 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/immutability
+  514:46   error  Error: Cannot access variable before it is declared
+
+`TITLE_SIZE` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  512 |             for (const node of gState.nodes) {
+  513 |                 if (!node.active) continue;
+> 514 |                 const nRect = { x: node.x - (TITLE_SIZE / 2), z: node.z - (TITLE_SIZE / 2), width: TILE_SIZE, depth: TILE_SIZE };
+      |                                              ^^^^^^^^^^ `TITLE_SIZE` accessed before it is declared
+  515 |
+  516 |                 if (checkCollision(projRect, nRect)) {
+  517 |                     p.active = false;
+
+  543 |     });
+  544 |
+> 545 |     const TITLE_SIZE = 1;
+      |     ^^^^^^^^^^^^^^^^^^^^^ `TITLE_SIZE` is declared here
+  546 |
+  547 |     return (
+  548 |         <>                                                                                                                                        react-hooks/immutability
+  649:11   error  'handlePlayerHit' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+  660:11   error  'handleEnemyDestroyed' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  677:35   error  'winStatus' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  692:24   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  690 |     };
+  691 |
+> 692 |     const radarNodes = gameStateRef.current?.nodes || [];
+      |                        ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  693 |     const radarFragments = gameStateRef.current?.fragments || [];
+  694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+  695 |                                                                                                                                                                                                                                                                                        react-hooks/refs
+  692:24   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  690 |     };
+  691 |
+> 692 |     const radarNodes = gameStateRef.current?.nodes || [];
+      |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  693 |     const radarFragments = gameStateRef.current?.fragments || [];
+  694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+  695 |                                                                                                                                                                                                                                                                                 react-hooks/refs
+  693:28   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  691 |
+  692 |     const radarNodes = gameStateRef.current?.nodes || [];
+> 693 |     const radarFragments = gameStateRef.current?.fragments || [];
+      |                            ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+  695 |
+  696 |     return (                                                                                                                                                                                                                                                                              react-hooks/refs
+  693:28   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  691 |
+  692 |     const radarNodes = gameStateRef.current?.nodes || [];
+> 693 |     const radarFragments = gameStateRef.current?.fragments || [];
+      |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+  695 |
+  696 |     return (                                                                                                                                                                                                                                                                   react-hooks/refs
+  694:25   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  692 |     const radarNodes = gameStateRef.current?.nodes || [];
+  693 |     const radarFragments = gameStateRef.current?.fragments || [];
+> 694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+      |                         ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  695 |
+  696 |     return (
+  697 |         <div style={{                                                                                                                                                                                                                                                           react-hooks/refs
+  694:25   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  692 |     const radarNodes = gameStateRef.current?.nodes || [];
+  693 |     const radarFragments = gameStateRef.current?.fragments || [];
+> 694 |     const radarPlayer = gameStateRef.current?.player || { x: 0, z: 0 };
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  695 |
+  696 |     return (
+  697 |         <div style={{                                                                                                                                                                                                                                                   react-hooks/refs
+  735:31   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  733 |             </div>
+  734 |
+> 735 |             <Radar playerPos={radarPlayer} nodes={radarNodes} fragments={radarFragments} />
+      |                               ^^^^^^^^^^^ Cannot access ref value during render
+  736 |
+  737 |             {/* Target Lock UI */}
+  738 |             {radarNodes.some(n => n.active && Math.sqrt(Math.pow(n.x - radarPlayer.x, 2) + Math.pow(n.z - radarPlayer.z, 2)) < 3) && (                                                                                                                                                                                                            react-hooks/refs
+  735:51   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  733 |             </div>
+  734 |
+> 735 |             <Radar playerPos={radarPlayer} nodes={radarNodes} fragments={radarFragments} />
+      |                                                   ^^^^^^^^^^ Cannot access ref value during render
+  736 |
+  737 |             {/* Target Lock UI */}
+  738 |             {radarNodes.some(n => n.active && Math.sqrt(Math.pow(n.x - radarPlayer.x, 2) + Math.pow(n.z - radarPlayer.z, 2)) < 3) && (                                                                                                                                                                                         react-hooks/refs
+  735:74   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  733 |             </div>
+  734 |
+> 735 |             <Radar playerPos={radarPlayer} nodes={radarNodes} fragments={radarFragments} />
+      |                                                                          ^^^^^^^^^^^^^^ Cannot access ref value during render
+  736 |
+  737 |             {/* Target Lock UI */}
+  738 |             {radarNodes.some(n => n.active && Math.sqrt(Math.pow(n.x - radarPlayer.x, 2) + Math.pow(n.z - radarPlayer.z, 2)) < 3) && (                                                                                                                                                              react-hooks/refs
+  738:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  736 |
+  737 |             {/* Target Lock UI */}
+> 738 |             {radarNodes.some(n => n.active && Math.sqrt(Math.pow(n.x - radarPlayer.x, 2) + Math.pow(n.z - radarPlayer.z, 2)) < 3) && (
+      |              ^^^^^^^^^^ Passing a ref to a function may read its value during render
+  739 |                 <div style={{
+  740 |                     position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+  741 |                     width: '100px', height: '100px', border: '1px solid var(--secondary)',                                                                                      react-hooks/refs
+  738:14   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  736 |
+  737 |             {/* Target Lock UI */}
+> 738 |             {radarNodes.some(n => n.active && Math.sqrt(Math.pow(n.x - radarPlayer.x, 2) + Math.pow(n.z - radarPlayer.z, 2)) < 3) && (
+      |              ^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  739 |                 <div style={{
+  740 |                     position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+  741 |                     width: '100px', height: '100px', border: '1px solid var(--secondary)',                                                                                 react-hooks/refs
+  752:103  error  'triggerCombat' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-undef
+  788:31   error  'currentTaunt' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  794:44   error  'puzzleTimeLeft' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+  795:45   error  'puzzleTimeLeft' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+  800:44   error  'puzzleTimeLeft' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+  801:52   error  'puzzleTimeLeft' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-undef
+  804:26   error  'puzzle' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-undef
+  806:43   error  'puzzle' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-undef
+  807:49   error  'submitPuzzle' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  808:65   error  'puzzleAnswer' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  808:96   error  'setPuzzleAnswer' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-undef
+  844:32   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  842 |                 }}>
+  843 |                     <h1 className="glitch-text" style={{
+> 844 |                         color: gameStateRef.current.health <= 0 ? 'var(--secondary)' : 'var(--terminal-green)',
+      |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  845 |                         fontSize: '3.5rem', marginBottom: '1rem', textShadow: 'none'
+  846 |                     }}>
+  847 |                         {gameStateRef.current.health <= 0 ? 'SYSTEM_FAILURE' : 'SIMULATION_CLEARED'}                                                                     react-hooks/refs
+  847:26   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  845 |                         fontSize: '3.5rem', marginBottom: '1rem', textShadow: 'none'
+  846 |                     }}>
+> 847 |                         {gameStateRef.current.health <= 0 ? 'SYSTEM_FAILURE' : 'SIMULATION_CLEARED'}
+      |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  848 |                     </h1>
+  849 |
+  850 |                     <p style={{ color: 'var(--text-muted)', fontFamily: 'Fira Code', fontSize: '1.2rem', maxWidth: '600px', textAlign: 'center', marginTop: '1rem' }}>                                                                       react-hooks/refs
+  851:26   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  849 |
+  850 |                     <p style={{ color: 'var(--text-muted)', fontFamily: 'Fira Code', fontSize: '1.2rem', maxWidth: '600px', textAlign: 'center', marginTop: '1rem' }}>
+> 851 |                         {gameStateRef.current.health <= 0
+      |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  852 |                             ? "CRITICAL INTEGRITY LOSS. THE ROGUE AI HAS ASSIMILATED YOUR INSTANCE. REBOOT REQUIRED."
+  853 |                             : "ALL NODES NEUTRALIZED. GRID STABILITY RESTORED. EXCELLENT WORK, AGENT."}
+  854 |                     </p>  react-hooks/refs
+
+G:\Projects\game\frontend\src\pages\Home.jsx
+  33:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  31 |     useEffect(() => {
+  32 |         if (!active) {
+> 33 |             setDisplay(text);
+     |             ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |         }
+  35 |     }, [active, text]);
+  36 |  react-hooks/set-state-in-effect
+  73:22  error  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+
+Γ£û 37 problems (37 errors, 0 warnings)
+
