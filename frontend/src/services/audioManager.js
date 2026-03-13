@@ -3,18 +3,47 @@
  * Handles background ambient tracks and SFX for UI/Gameplay.
  */
 
+import useSettingsStore from '../store/settingsStore';
+
 class AudioManager {
     constructor() {
         this.ctx = null;
+        this.masterGain = null;
+        this.bgmGain = null;
         this.initialized = false;
-        this.sounds = {};
+        this.bgmPlaying = false;
+        this.bgmOscillators = [];
+        this.sequenceInterval = null;
     }
 
     init() {
         if (this.initialized) return;
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Setup Master Gain
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.connect(this.ctx.destination);
+        
+        // Setup BGM Gain
+        this.bgmGain = this.ctx.createGain();
+        this.bgmGain.connect(this.masterGain);
+        this.bgmGain.gain.value = 0.4; // Base BGM volume relative to SFX
+
         this.initialized = true;
+        this.syncSettings();
+
+        // Subscribe to settings changes
+        useSettingsStore.subscribe((state) => this.syncSettings(state));
+        
         console.log("Audio Engine Initialized.");
+    }
+
+    syncSettings(state = useSettingsStore.getState()) {
+        if (!this.initialized) return;
+        
+        const targetVolume = state.isMuted ? 0 : state.volume;
+        // Simple linear ramp to avoid popping
+        this.masterGain.gain.setTargetAtTime(targetVolume, this.ctx.currentTime, 0.1);
     }
 
     // Play a procedurally generated "beep" for UI
@@ -30,7 +59,7 @@ class AudioManager {
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.masterGain); // Connect SFX to master
 
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
@@ -45,6 +74,84 @@ class AudioManager {
         if (!this.initialized) return;
         this.playBeep(880, 0.1);
         setTimeout(() => this.playBeep(1320, 0.2), 100);
+    }
+
+    // --- Procedural Synthwave BGM ---
+    startBGM() {
+        if (!this.initialized) this.init();
+        if (this.bgmPlaying) return;
+        this.bgmPlaying = true;
+
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+
+        // Faster, driving Cyberpunk sequence
+        const sequence = [
+            110.00, 110.00, 220.00, 110.00, 
+            130.81, 110.00, 164.81, 110.00,
+            110.00, 110.00, 220.00, 110.00,
+            196.00, 164.81, 130.81, 110.00
+        ];
+        let step = 0;
+        const tempo = 150; // BPM
+        const stepTime = (60 / tempo) / 4; // 16th notes
+
+        const playBassNote = () => {
+            if (!this.bgmPlaying) return;
+
+            const freq = sequence[step % sequence.length];
+            step++;
+
+            // Create Synths
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            // Sawtooth for that retro grit
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            // Slight detune for thickness
+            osc.detune.value = (Math.random() - 0.5) * 10;
+
+            // Lowpass filter envelope
+            filter.type = 'lowpass';
+            filter.Q.value = 5;
+            filter.frequency.setValueAtTime(freq * 8, this.ctx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(freq * 1.5, this.ctx.currentTime + stepTime * 0.8);
+
+            // Amp Envelope (Pluck)
+            gain.gain.setValueAtTime(0, this.ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.3, this.ctx.currentTime + 0.02); // quick attack
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + stepTime * 0.9); // decay
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.bgmGain); // Connect to BGM bus
+
+            osc.start(this.ctx.currentTime);
+            osc.stop(this.ctx.currentTime + stepTime);
+
+            // Keep track for cleanup
+            this.bgmOscillators.push(osc);
+            // Clean up old oscillators
+            if (this.bgmOscillators.length > 20) {
+                this.bgmOscillators.shift();
+            }
+        };
+
+        // Start sequencer loop
+        playBassNote();
+        this.sequenceInterval = setInterval(playBassNote, stepTime * 1000);
+    }
+
+    stopBGM() {
+        this.bgmPlaying = false;
+        clearInterval(this.sequenceInterval);
+        this.bgmOscillators.forEach(osc => {
+            try { osc.stop(); } catch (e) { /* ignore */ }
+        });
+        this.bgmOscillators = [];
     }
 }
 

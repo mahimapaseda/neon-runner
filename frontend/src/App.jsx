@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Game from './pages/Game';
 import useAuthStore from './store/authStore';
+import audioManager from './services/audioManager';
+import SettingsModal from './components/ui/SettingsModal';
 import './index.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -13,9 +15,46 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// A small global floating widget to open settings
+const SettingsWidget = ({ onOpen }) => (
+  <button 
+    onClick={onOpen}
+    style={{
+      position: 'fixed', top: '15px', right: '15px', zIndex: 999,
+      background: 'rgba(0,0,0,0.5)', border: '1px solid var(--primary)',
+      color: 'var(--primary)', padding: '10px 15px', borderRadius: '4px',
+      cursor: 'pointer', fontFamily: 'Fira Code', boxShadow: '0 0 10px rgba(0,240,255,0.2)'
+    }}
+  >
+    ⚙️ SYS
+  </button>
+);
+
 function App() {
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+
+  // Initialize audio context on first click anywhere in the app
+  React.useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (!audioManager.initialized) {
+        audioManager.init();
+        audioManager.startBGM();
+      } else if (!audioManager.bgmPlaying) {
+        audioManager.startBGM();
+      }
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+
+    document.addEventListener('click', handleFirstInteraction);
+    return () => document.removeEventListener('click', handleFirstInteraction);
+  }, []);
+
   return (
     <Router>
+      <SettingsWidget onOpen={() => setIsSettingsOpen(true)} />
+      {isSettingsOpen && (
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      )}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

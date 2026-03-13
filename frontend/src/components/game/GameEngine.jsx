@@ -1418,7 +1418,7 @@ const GameEngine = () => {
                 }}>
                     <div className="glass-panel" style={{
                         padding: '3rem', border: '1px solid var(--primary)',
-                        width: '90%', maxWidth: '500px', textAlign: 'center'
+                        width: '90%', maxWidth: '700px', textAlign: 'center'
                     }}>
                         <div className="panel-corner corner-tl" />
                         <div className="panel-corner corner-br" />
