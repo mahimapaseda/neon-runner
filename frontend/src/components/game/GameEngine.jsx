@@ -8,7 +8,7 @@ import * as THREE from 'three';
 
 import useAuthStore from '../../store/authStore';
 import useGameStore from '../../store/gameStore';
-import { submitScore } from '../../services/apiClient';
+import { submitScore, fetchHeartPuzzle } from '../../services/apiClient';
 import audioManager from '../../services/audioManager';
 
 const LORE_FRAGMENTS = [
@@ -600,7 +600,7 @@ const Projectile = ({ position }) => {
 };
 
 // --- The 3D World Component ---
-const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitPlayer, onHealPlayer, onEnemyDestroyed }) => {
+const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitPlayer, onHealPlayer, onEnemyDestroyed, onPuzzleTrigger }) => {
     const { camera, raycaster, mouse, scene } = useThree();
     const playerRef = useRef();
     const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
@@ -953,23 +953,32 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                     audioManager.playGlitch(); // Hit sound
 
                     if (gState.nodes[j].health <= 0) {
-                        gState.nodes[j].active = false;
-                        gState.cameraShake = 0.4; // Big shake on kill
-                        onEnemyDestroyed();
+                        // Check if this is the last active node
+                        const otherNodesRemaining = gState.nodes.filter((n, idx) => idx !== j && n.active && n.health > 0).length;
+                        
+                        if (otherNodesRemaining === 0) {
+                            // Trigger puzzle instead of instant death only for the final enemy
+                            onPuzzleTrigger(j);
+                        } else {
+                            // Instant kill for non-final enemies
+                            gState.nodes[j].active = false;
+                            gState.cameraShake = 0.4;
+                            onEnemyDestroyed();
 
-                        // Spawn Debris
-                        for (let k = 0; k < 8; k++) {
-                            gState.debris.push({
-                                id: Date.now() + k,
-                                x: node.x,
-                                y: 0.6,
-                                z: node.z,
-                                vx: (Math.random() - 0.5) * 10,
-                                vy: Math.random() * 5 + 2,
-                                vz: (Math.random() - 0.5) * 10,
-                                life: 1.0,
-                                color: '#ff003c'
-                            });
+                            // Spawn Debris
+                            for (let k = 0; k < 8; k++) {
+                                gState.debris.push({
+                                    id: Date.now() + k,
+                                    x: node.x,
+                                    y: 0.6,
+                                    z: node.z,
+                                    vx: (Math.random() - 0.5) * 10,
+                                    vy: Math.random() * 5 + 2,
+                                    vz: (Math.random() - 0.5) * 10,
+                                    life: 1.0,
+                                    color: '#ff003c'
+                                });
+                            }
                         }
                     }
                     break; // Projectile destroyed, stop checking nodes
@@ -1052,6 +1061,13 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                 setRenderFragments(g.fragments ? [...g.fragments] : []);
                 setRenderHearts(g.hearts ? [...g.hearts] : []);
                 setRenderDebris(g.debris ? [...g.debris] : []);
+                setHudData({
+                    nodes: g.nodes ? [...g.nodes] : [],
+                    fragments: g.fragments ? [...g.fragments] : [],
+                    hearts: g.hearts ? [...g.hearts] : [],
+                    player: { ...g.player },
+                    health: g.health
+                });
             }
         }, 50);
         return () => clearInterval(interval);
@@ -1135,9 +1151,10 @@ const GameEngine = () => {
     const user = useAuthStore(state => state.user);
     const hero = useGameStore(state => state.selectedHero);
 
-    const [gameState, setGameState] = useState('STORY_INTRO'); // STORY_INTRO, EXPLORATION, GAME_OVER
+    const [gameState, setGameState] = useState('STORY_INTRO'); // STORY_INTRO, EXPLORATION, COMBAT, PUZZLE, GAME_OVER, LEVEL_CLEAR
     const [currentLore, setCurrentLore] = useState(null);
     const [screenShake, setScreenShake] = useState(false);
+    const [activePuzzle, setActivePuzzle] = useState({ data: null, nodeId: null, input: '', loading: false, error: null });
 
     // UI Score View and HUD Data
     const [scoreInfo, setScoreInfo] = useState({ experience: 0, puzzles: 0, health: 3 + Math.floor((hero?.powerstats?.strength || 50) / 25), level: 1 });
@@ -1168,6 +1185,82 @@ const GameEngine = () => {
             map: initialData.map
         };
     }
+
+    const handlePuzzleTrigger = async (nodeId) => {
+        setGameState('PUZZLE');
+        setActivePuzzle(prev => ({ ...prev, loading: true, nodeId, input: '', error: null }));
+        try {
+            const data = await fetchHeartPuzzle();
+            setActivePuzzle(prev => ({ ...prev, loading: false, data }));
+        } catch (error) {
+            console.error("Failed to fetch puzzle:", error);
+            // In case of API failure, auto-destroy to avoid soft-lock
+            handlePuzzleSuccess(nodeId);
+        }
+    };
+
+    const handlePuzzleSubmit = () => {
+        if (!activePuzzle.data) return;
+        const solution = activePuzzle.data.solution.toString();
+        
+        if (activePuzzle.input.trim() === solution) {
+            handlePuzzleSuccess(activePuzzle.nodeId);
+        } else {
+            handlePuzzleFail(activePuzzle.nodeId);
+        }
+    };
+
+    const handlePuzzleSuccess = (nodeId) => {
+        audioManager.playSuccess();
+        setGameState('EXPLORATION');
+        setActivePuzzle({ data: null, nodeId: null, input: '', loading: false, error: null });
+        
+        if (gameStateRef.current && gameStateRef.current.nodes[nodeId]) {
+            const node = gameStateRef.current.nodes[nodeId];
+            node.active = false;
+            gameStateRef.current.cameraShake = 0.4;
+            
+            // Spawn Debris
+            for (let k = 0; k < 8; k++) {
+                gameStateRef.current.debris.push({
+                    id: Date.now() + k,
+                    x: node.x,
+                    y: 0.6,
+                    z: node.z,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: Math.random() * 5 + 2,
+                    vz: (Math.random() - 0.5) * 10,
+                    life: 1.0,
+                    color: '#ff003c'
+                });
+            }
+        }
+        handleEnemyDestroyed();
+    };
+
+    const handlePuzzleFail = (nodeId) => {
+        audioManager.playGlitch();
+        setActivePuzzle(prev => ({ ...prev, input: '', error: 'INVALID_DECRYPTION_KEY' }));
+        
+        // Take damage
+        gameStateRef.current.health--;
+        setScoreInfo(prev => ({ ...prev, health: gameStateRef.current.health }));
+        setScreenShake(true);
+        setTimeout(() => setScreenShake(false), 300);
+        
+        if (gameStateRef.current.health <= 0) {
+            setGameState('GAME_OVER');
+        } else {
+            // Kick out of puzzle, restore enemy health slightly
+            if (gameStateRef.current && gameStateRef.current.nodes[nodeId]) {
+                gameStateRef.current.nodes[nodeId].health = 1;
+            }
+            setTimeout(() => {
+                setGameState('EXPLORATION');
+                setActivePuzzle({ data: null, nodeId: null, input: '', loading: false, error: null });
+            }, 1000);
+        }
+    };
 
     const handleNextLevel = () => {
         const nextLvl = gameStateRef.current.level + 1;
@@ -1296,6 +1389,7 @@ const GameEngine = () => {
                         if (gameStateRef.current.health <= 0) handleGameOver();
                     }}
                     onEnemyDestroyed={handleEnemyDestroyed}
+                    onPuzzleTrigger={handlePuzzleTrigger}
                 />
 
                 <EffectComposer>
@@ -1371,6 +1465,70 @@ const GameEngine = () => {
                             ENCRYPTION_STRENGTH: ULTRA_LOCKED<br />
                             <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>STATUS: ENGAGING_TARGET...</span>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Puzzle Overlay */}
+            {gameState === 'PUZZLE' && (
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 25, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    background: 'radial-gradient(circle, rgba(0,240,255,0.1) 0%, rgba(5,5,8,0.98) 100%)',
+                    backdropFilter: 'blur(5px)'
+                }}>
+                    <div className="glass-panel" style={{
+                        padding: '3rem', border: `1px solid ${activePuzzle.error ? 'var(--secondary)' : 'var(--primary)'}`,
+                        width: '90%', maxWidth: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        boxShadow: activePuzzle.error ? '0 0 30px rgba(255,0,60,0.3)' : '0 0 30px rgba(0,240,255,0.1)'
+                    }}>
+                        <div className="panel-corner corner-tl" style={{ borderColor: activePuzzle.error ? 'var(--secondary)' : 'var(--primary)' }} />
+                        <div className="panel-corner corner-br" style={{ borderColor: activePuzzle.error ? 'var(--secondary)' : 'var(--primary)' }} />
+
+                        <div style={{ color: activePuzzle.error ? 'var(--secondary)' : 'var(--primary)', fontSize: '0.8rem', letterSpacing: '4px', marginBottom: '1rem' }}>
+                            {activePuzzle.error ? 'DECRYPTION_FAILED' : 'FIREWALL_OVERRIDE_REQUIRED'}
+                        </div>
+
+                        {activePuzzle.loading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '4rem 0' }}>
+                                <div className="loading-spinner" style={{ width: '40px', height: '40px', border: '3px solid rgba(0,240,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                <div style={{ color: 'var(--text-main)', marginTop: '1rem', fontFamily: 'Fira Code' }}>FETCHING_ENCRYPTION_MATRIX...</div>
+                            </div>
+                        ) : (
+                            <>
+                                {activePuzzle.data && (
+                                    <div style={{ background: '#fff', padding: '10px', borderRadius: '4px', marginBottom: '2rem' }}>
+                                        <img src={activePuzzle.data.question} alt="Decryption Matrix" style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />
+                                    </div>
+                                )}
+                                
+                                {activePuzzle.error && (
+                                    <div style={{ color: 'var(--secondary)', fontFamily: 'Fira Code', marginBottom: '1rem', animation: 'blink 0.5s infinite' }}>
+                                        WARNING: {activePuzzle.error}
+                                    </div>
+                                )}
+
+                                <div style={{ width: '100%', display: 'flex', gap: '1rem' }}>
+                                    <input 
+                                        type="number"
+                                        className="form-input"
+                                        placeholder="ENTER_SOLUTION_KEY"
+                                        value={activePuzzle.input}
+                                        onChange={(e) => setActivePuzzle(prev => ({ ...prev, input: e.target.value }))}
+                                        onKeyDown={(e) => e.key === 'Enter' && handlePuzzleSubmit()}
+                                        style={{ flex: 1, textAlign: 'center', fontSize: '1.2rem', letterSpacing: '2px' }}
+                                        autoFocus
+                                    />
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={handlePuzzleSubmit}
+                                        style={{ padding: '0 2rem' }}
+                                    >
+                                        EXECUTE
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
