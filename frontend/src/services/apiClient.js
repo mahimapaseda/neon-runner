@@ -30,6 +30,7 @@ export const submitScore = async (scoreData, token) => {
 };
 
 export const updateProfile = async (profileData, token) => {
+    console.log("apiClient: updateProfile called with token", token?.substring(0, 10) + "...");
     const response = await axios.put(`${BACKEND_URL}/auth/profile`, profileData, {
         headers: { Authorization: `Bearer ${token}` }
     });

@@ -1,0 +1,23 @@
+=== PARAGRAPHS ===
+P0: [Heading 1] 'CIS045-3 Distributed Service Architectures – AY 25/26'
+P1: [Heading 1] 'Student Name: G G M P Kusumsiri \t\tStudent Number: 2540881                                                                                 '
+P2: [Heading 1] 'Student Signature: \t\t\t\t\tDate: March 2026 (Week 8)'
+P3: [Normal] ''
+P4: [Normal] 'Please answer the questions below, print this form and bring it to the presentation where it will be checked against reality and signed off by the tutor.  Once signed off, scan this form and submit on BREO with all other deliverables (video, code). At this stage, Week 8, (at least) a working prototype should be presented plus some ideas on how to continue with the development.  '
+P5: [Heading 1] 'Software Architecture (Low Coupling / High Cohesion)'
+P6: [Normal] 'How is your code structured? (e.g., components, files, libraries, classes, packages …)'
+P7: [Normal] ''
+P8: [Heading 1] 'Event Driven Architectures'
+P9: [Normal] 'What in your code triggers events (e.g., GUI, buttons, timeout …)? '
+P10: [Heading 1] ''
+P11: [Heading 1] 'Interoperability '
+P12: [Normal] 'You are expected to use the API available via marcconrad.com/uob/heart/api.php '
+P13: [Normal] 'What protocol do you use (e.g., JSON, base64)?'
+P14: [Heading 1] ''
+P15: [Heading 1] 'Virtual Identity'
+P16: [Normal] 'How did you implement virtual identity in your code? (e.g., Passwords, Cookies, IP Numbers …)'
+P17: [Heading 1] ''
+P18: [Heading 1] 'Any other interesting features: '
+P19: [Heading 1] ''
+
+=== TABLES ===

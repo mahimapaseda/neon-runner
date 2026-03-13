@@ -411,7 +411,7 @@ const Heart3D = ({ position, color = "#ff003c" }) => {
     });
 
     return (
-        <mesh position={position} ref={meshRef} rotation={[0, 0, Math.PI]}>
+        <mesh position={position} ref={meshRef}>
             <extrudeGeometry args={[heartPath, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 }]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={3} />
         </mesh>
@@ -600,7 +600,7 @@ const Projectile = ({ position }) => {
 };
 
 // --- The 3D World Component ---
-const World3D = ({ gameState, gameStateRef, gameMap, onHitPlayer, onEnemyDestroyed, onCollectLore }) => {
+const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitPlayer, onHealPlayer, onEnemyDestroyed }) => {
     const { camera, raycaster, mouse, scene } = useThree();
     const playerRef = useRef();
     const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
@@ -755,8 +755,8 @@ const World3D = ({ gameState, gameStateRef, gameMap, onHitPlayer, onEnemyDestroy
         const shakeX = (Math.random() - 0.5) * shake;
         const shakeZ = (Math.random() - 0.5) * shake;
 
-        camera.position.set(gState.player.x + shakeX, 12, gState.player.z + 8 + shakeZ);
-        camera.lookAt(gState.player.x, 0, gState.player.z - 2);
+        camera.position.set(gState.player.x + shakeX, 10, gState.player.z + 6 + shakeZ);
+        camera.lookAt(gState.player.x, 1, gState.player.z);
 
         if (gState.cameraShake > 0) {
             gState.cameraShake *= 0.9; // Decay shake
@@ -1019,7 +1019,7 @@ const World3D = ({ gameState, gameStateRef, gameMap, onHitPlayer, onEnemyDestroy
                     const maxHealth = 3 + Math.floor((hero?.powerstats?.strength || 50) / 25);
                     if (gState.health < maxHealth) {
                         gState.health++;
-                        setScoreInfo(prev => ({ ...prev, health: gState.health }));
+                        onHealPlayer(gState.health);
                     }
                     audioManager.playSuccess();
                 }
@@ -1285,6 +1285,9 @@ const GameEngine = () => {
                     gameMap={gameStateRef.current.map}
                     hero={hero}
                     onCollectLore={handleCollectLore}
+                    onHealPlayer={(newHealth) => {
+                        setScoreInfo(prev => ({ ...prev, health: newHealth }));
+                    }}
                     onHitPlayer={() => {
                         gameStateRef.current.health--;
                         setScoreInfo(prev => ({ ...prev, health: gameStateRef.current.health }));

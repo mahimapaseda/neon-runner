@@ -35,6 +35,7 @@ const DecodingText = ({ text, active }) => {
 const Home = () => {
     const user = useAuthStore(state => state.user);
     const logout = useAuthStore(state => state.logoutStore);
+    const loginStore = useAuthStore(state => state.loginStore);
     const { selectedHero, setHero } = useGameStore();
     const navigate = useNavigate();
 
@@ -48,27 +49,44 @@ const Home = () => {
     // Slider ref for hero cards
     const sliderRef = useRef(null);
 
+    const loadBoard = async () => {
+        try {
+            const data = await fetchLeaderboard();
+            setLeaderboard(data);
+        } catch {
+            console.error("Failed to load leaderboard");
+        }
+    };
+
     const handleUpdateAvatar = async () => {
         try {
-            const updatedUser = await updateProfile({ avatarUrl: tempAvatar }, user.token);
+            console.log("Updating avatar for user:", user.username);
+            const encodedUsername = encodeURIComponent(user.username);
+            const finalAvatarUrl = tempAvatar.replace(user.username, encodedUsername);
+            
+            const updatedUser = await updateProfile({ avatarUrl: finalAvatarUrl }, user.token);
+            console.log("Profile updated successfully:", updatedUser);
+            
             loginStore(updatedUser);
             setShowAvatarPicker(false);
             audioManager.playSuccess();
+            
+            // Refresh leaderboard to reflect new avatar
+            await loadBoard();
         } catch (err) {
             console.error("Failed to update avatar", err);
             audioManager.playGlitch();
+            
+            // Auto logout if session expired
+            if (err.response?.status === 401) {
+                console.warn("Session expired. Logging out...");
+                logout();
+                navigate('/login');
+            }
         }
     };
 
     useEffect(() => {
-        const loadBoard = async () => {
-            try {
-                const data = await fetchLeaderboard();
-                setLeaderboard(data);
-            } catch {
-                console.error("Failed to load leaderboard");
-            }
-        };
         loadBoard();
     }, []);
 
@@ -99,6 +117,13 @@ const Home = () => {
             sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
+
+    // Reset tempAvatar when modal opens to ensure consistency
+    useEffect(() => {
+        if (showAvatarPicker) {
+            setTempAvatar(user.avatarUrl);
+        }
+    }, [showAvatarPicker, user.avatarUrl]);
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', display: 'flex', gap: '2rem', flexWrap: 'wrap', minHeight: '100vh', alignItems: 'flex-start' }}>
@@ -171,21 +196,27 @@ const Home = () => {
                         <h2 style={{ color: 'var(--primary)', marginBottom: '1.5rem', fontSize: '1.2rem' }}>// IDENTITY_CUSTOMIZATION</h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-                            {['set1', 'set2', 'set3', 'set4'].map((set, idx) => (
-                                <div
-                                    key={set}
-                                    onClick={() => setTempAvatar(`https://robohash.org/${user.username}?set=${set}`)}
-                                    style={{
-                                        border: `1px solid ${tempAvatar.includes(set) ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`,
-                                        padding: '1rem', borderRadius: '4px', cursor: 'pointer', textAlign: 'center',
-                                        background: tempAvatar.includes(set) ? 'rgba(0,240,255,0.05)' : 'transparent',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <img src={`https://robohash.org/${user.username}?set=${set}`} alt={set} style={{ width: '80px', height: '80px' }} />
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>STYLE_0{idx + 1}</div>
-                                </div>
-                            ))}
+                            {['set1', 'set2', 'set3', 'set4'].map((set, idx) => {
+                                const encodedUsername = encodeURIComponent(user.username);
+                                const avatarOptionUrl = `https://robohash.org/${encodedUsername}?set=${set}`;
+                                const isSelected = tempAvatar?.includes(set);
+                                
+                                return (
+                                    <div
+                                        key={set}
+                                        onClick={() => setTempAvatar(avatarOptionUrl)}
+                                        style={{
+                                            border: `1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`,
+                                            padding: '1rem', borderRadius: '4px', cursor: 'pointer', textAlign: 'center',
+                                            background: isSelected ? 'rgba(0,240,255,0.05)' : 'transparent',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <img src={avatarOptionUrl} alt={set} style={{ width: '80px', height: '80px' }} />
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>STYLE_0{idx + 1}</div>
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem' }}>

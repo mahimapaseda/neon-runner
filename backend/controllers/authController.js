@@ -92,60 +92,33 @@ const loginUser = async (req, res) => {
 // @route   GET /api/auth/profile
 // @access  Private (Needs token validation in real app, simplified here)
 const getProfile = async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.id).select('-passwordHash');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.json(user);
-    } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
-    }
+    res.json(req.user);
 };
 
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
 const updateProfile = async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
-    }
-
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
         const { username, avatarUrl } = req.body;
-
-        const user = await User.findById(decoded.id);
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const user = req.user;
 
         if (username) user.username = username;
         if (avatarUrl) user.avatarUrl = avatarUrl;
 
         const updatedUser = await user.save();
+        console.log("updateProfile: User updated successfully:", updatedUser.username);
 
         res.json({
             _id: updatedUser.id,
             username: updatedUser.username,
             email: updatedUser.email,
             avatarUrl: updatedUser.avatarUrl,
-            token: generateToken(updatedUser._id), // Return fresh token in case ID changed (unlikely)
+            token: generateToken(updatedUser._id),
         });
     } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        console.error("updateProfile Error:", error.message);
+        res.status(500).json({ message: error.message });
     }
 };
 
