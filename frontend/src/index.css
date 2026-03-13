@@ -289,7 +289,7 @@ input:focus {
 
 .terminal-box {
   width: 100%;
-  max-width: 450px;
+  max-width: 550px;
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
@@ -304,6 +304,8 @@ input:focus {
   text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
   animation: glitch 3s infinite alternate;
   position: relative;
+  /* Add padding to prevent the text shadow/translation from clipping */
+  padding: 0 10px;
 }
 
 .auth-form {
