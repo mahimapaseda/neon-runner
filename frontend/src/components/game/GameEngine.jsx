@@ -1275,6 +1275,7 @@ const GameEngine = () => {
         gameStateRef.current.player.z = nextData.player.z;
         gameStateRef.current.projectiles = [];
 
+        audioManager.startBGM(nextLvl);
         setGameState('EXPLORATION');
         setScoreInfo(prev => ({ ...prev, level: nextLvl }));
     };

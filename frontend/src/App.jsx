@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Game from './pages/Game';
 import useAuthStore from './store/authStore';
+import useSettingsStore from './store/settingsStore';
 import audioManager from './services/audioManager';
 import SettingsModal from './components/ui/SettingsModal';
 import './index.css';
@@ -15,38 +16,33 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// A small global floating widget to open settings
-const SettingsWidget = ({ onOpen }) => (
-  <button 
-    onClick={onOpen}
-    style={{
-      position: 'fixed', top: '15px', right: '15px', zIndex: 999,
-      background: 'rgba(0,0,0,0.5)', border: '1px solid var(--primary)',
-      color: 'var(--primary)', padding: '10px 15px', borderRadius: '4px',
-      cursor: 'pointer', fontFamily: 'Fira Code', boxShadow: '0 0 10px rgba(0,240,255,0.2)'
-    }}
-  >
-    ⚙️ SYS
-  </button>
-);
-
-const FullscreenWidget = ({ isFullscreen, onToggle }) => (
-  <button 
-    onClick={onToggle}
-    style={{
-      position: 'fixed', top: '15px', right: '110px', zIndex: 999,
-      background: 'rgba(0,0,0,0.5)', border: '1px solid var(--primary)',
-      color: 'var(--primary)', padding: '10px 15px', borderRadius: '4px',
-      cursor: 'pointer', fontFamily: 'Fira Code', boxShadow: '0 0 10px rgba(0,240,255,0.2)'
-    }}
-  >
-    {isFullscreen ? 'v EXPAND v' : '^ EXPAND ^'}
-  </button>
+// Unified Global Widgets
+const GlobalHUD = ({ onOpenSettings, isFullscreen, onToggleFullscreen }) => (
+  <div style={{
+    position: 'fixed', top: '20px', right: '20px', zIndex: 999,
+    display: 'flex', gap: '10px'
+  }}>
+    <button 
+      onClick={onToggleFullscreen}
+      className="btn-secondary"
+      style={{ padding: '8px 12px', fontSize: '0.7rem', background: 'rgba(0,0,0,0.6)' }}
+    >
+      {isFullscreen ? 'COLLAPSE' : 'EXPAND'}
+    </button>
+    <button 
+      onClick={onOpenSettings}
+      className="btn-primary"
+      style={{ padding: '8px 16px', fontSize: '0.7rem' }}
+    >
+      ⚙️ SYS
+    </button>
+  </div>
 );
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const crtFilter = useSettingsStore(state => state.crtFilter);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -68,6 +64,15 @@ function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Handle CRT filter global class
+  React.useEffect(() => {
+    if (crtFilter) {
+      document.body.classList.remove('no-scanlines');
+    } else {
+      document.body.classList.add('no-scanlines');
+    }
+  }, [crtFilter]);
+
   // Initialize audio context on first click anywhere in the app
   React.useEffect(() => {
     const handleFirstInteraction = () => {
@@ -86,8 +91,11 @@ function App() {
 
   return (
     <Router>
-      <FullscreenWidget isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
-      <SettingsWidget onOpen={() => setIsSettingsOpen(true)} />
+      <GlobalHUD 
+        onOpenSettings={() => setIsSettingsOpen(true)} 
+        isFullscreen={isFullscreen} 
+        onToggleFullscreen={toggleFullscreen} 
+      />
       {isSettingsOpen && (
         <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       )}

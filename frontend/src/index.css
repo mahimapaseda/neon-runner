@@ -99,7 +99,7 @@ body {
 }
 
 /* CRT Scanline Overlay */
-body::after {
+body:not(.no-scanlines)::after {
   content: " ";
   display: block;
   position: fixed;
@@ -108,7 +108,7 @@ body::after {
   bottom: 0;
   right: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
+  z-index: 2147483647; /* Move above everything if needed, but below most UI */
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
 }

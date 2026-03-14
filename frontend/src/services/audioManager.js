@@ -10,24 +10,29 @@ class AudioManager {
         this.ctx = null;
         this.masterGain = null;
         this.bgmGain = null;
+        this.sfxGain = null;
         this.initialized = false;
         this.bgmPlaying = false;
         this.bgmOscillators = [];
         this.sequenceInterval = null;
+        this.currentLevel = 1;
     }
 
     init() {
         if (this.initialized) return;
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Setup Master Gain
+        // Setup Master Gain (Main Mute)
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
         
         // Setup BGM Gain
         this.bgmGain = this.ctx.createGain();
         this.bgmGain.connect(this.masterGain);
-        this.bgmGain.gain.value = 0.4; // Base BGM volume relative to SFX
+
+        // Setup SFX Gain
+        this.sfxGain = this.ctx.createGain();
+        this.sfxGain.connect(this.masterGain);
 
         this.initialized = true;
         this.syncSettings();
@@ -41,9 +46,12 @@ class AudioManager {
     syncSettings(state = useSettingsStore.getState()) {
         if (!this.initialized) return;
         
-        const targetVolume = state.isMuted ? 0 : state.volume;
-        // Simple linear ramp to avoid popping
-        this.masterGain.gain.setTargetAtTime(targetVolume, this.ctx.currentTime, 0.1);
+        const masterVolume = state.isMuted ? 0 : 1;
+        this.masterGain.gain.setTargetAtTime(masterVolume, this.ctx.currentTime, 0.1);
+
+        // Individual gains
+        this.bgmGain.gain.setTargetAtTime(state.bgmVolume, this.ctx.currentTime, 0.1);
+        this.sfxGain.gain.setTargetAtTime(state.sfxVolume, this.ctx.currentTime, 0.1);
     }
 
     // Play a procedurally generated "beep" for UI
@@ -59,7 +67,7 @@ class AudioManager {
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
 
         osc.connect(gain);
-        gain.connect(this.masterGain); // Connect SFX to master
+        gain.connect(this.sfxGain); // Connect SFX to SFX bus
 
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
@@ -77,24 +85,36 @@ class AudioManager {
     }
 
     // --- Procedural Synthwave BGM ---
-    startBGM() {
+    startBGM(level = 1) {
         if (!this.initialized) this.init();
-        if (this.bgmPlaying) return;
+        
+        // If playing and level changed, restart
+        if (this.bgmPlaying && this.currentLevel !== level) {
+            this.stopBGM();
+        } else if (this.bgmPlaying) {
+            return;
+        }
+
+        this.currentLevel = level;
         this.bgmPlaying = true;
 
         if (this.ctx.state === 'suspended') {
             this.ctx.resume();
         }
 
-        // Faster, driving Cyberpunk sequence
-        const sequence = [
-            110.00, 110.00, 220.00, 110.00, 
-            130.81, 110.00, 164.81, 110.00,
-            110.00, 110.00, 220.00, 110.00,
-            196.00, 164.81, 130.81, 110.00
-        ];
+        // Sequences based on level
+        const seq1 = [110.00, 110.00, 220.00, 110.00, 130.81, 110.00, 164.81, 110.00];
+        const seq2 = [110.00, 164.81, 130.81, 110.00, 196.00, 110.00, 220.00, 164.81];
+        const seq3 = [220.00, 110.00, 261.63, 110.00, 329.63, 220.00, 196.00, 130.81];
+
+        let sequence;
+        if (this.currentLevel === 1) sequence = [...seq1, ...seq1];
+        else if (this.currentLevel === 2) sequence = [...seq1, ...seq2];
+        else sequence = [...seq2, ...seq3];
+
         let step = 0;
-        const tempo = 150; // BPM
+        // Tempo increases slightly each level
+        const tempo = 140 + (this.currentLevel * 5); // BPM
         const stepTime = (60 / tempo) / 4; // 16th notes
 
         const playBassNote = () => {
