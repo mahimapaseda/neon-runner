@@ -2,6 +2,8 @@
 Write-Host "Starting Neon Runner Site..." -ForegroundColor Green
 Write-Host ""
 
+$originalPwd = $PWD
+
 # Backend
 Write-Host "Installing backend dependencies..." -ForegroundColor Yellow
 Set-Location backend
@@ -13,8 +15,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting backend server..." -ForegroundColor Yellow
-Start-Job -ScriptBlock { Set-Location $using:PWD\backend; npm run dev } -Name "BackendServer"
-Set-Location ..
+Start-Job -ScriptBlock { Set-Location "$using:originalPwd\backend"; npm run dev } -Name "BackendServer"
+Set-Location $originalPwd
 
 # Frontend
 Write-Host "Installing frontend dependencies..." -ForegroundColor Yellow
@@ -35,8 +37,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting frontend production server..." -ForegroundColor Yellow
-Start-Job -ScriptBlock { Set-Location $using:PWD\frontend; npm run preview } -Name "FrontendServer"
-Set-Location ..
+Start-Job -ScriptBlock { Set-Location "$using:originalPwd\frontend"; npm run preview } -Name "FrontendServer"
+Set-Location $originalPwd
 
 Write-Host ""
 Write-Host "Neon Runner is now running in production mode!" -ForegroundColor Green
