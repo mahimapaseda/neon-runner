@@ -47,18 +47,7 @@ AGENT, we have located the corrupted sector. Rogue security nodes are guarding f
 - **WASD / Arrows**: Move Runner.
 - **Mouse**: Aim.
 - **Space / Click**: Fire Decryption Pulse.
-- **Collect Power-ups**: Speed Boost (green), Shield (blue), Multi-shot (orange), Rapid Fire (pink)
 - **Goal**: Collect all green data fragments while avoiding or neutralizing red rogue nodes.
-
-## 🆕 New Features (Redesign)
-- **Power-up System**: Collect temporary boosts for enhanced gameplay
-  - Speed Boost: 50% faster movement
-  - Shield: Immunity to enemy collisions
-  - Multi-shot: Fire 3 projectiles in spread pattern
-  - Rapid Fire: 2.5x faster firing rate
-- **Enhanced HUD**: Real-time power-up status display
-- **Improved Combat**: Advanced shooting mechanics with power-up effects
-- **Visual Polish**: Animated power-up collectibles with particle effects
 
 ---
 *Created by [mahimapaseda](https://github.com/mahimapaseda)*
