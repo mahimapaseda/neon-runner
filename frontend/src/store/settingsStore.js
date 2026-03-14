@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 const useSettingsStore = create(
     persist(
         (set) => ({
-            bgmVolume: 0.4,
+            bgmVolume: 0.05,
             sfxVolume: 0.6,
             isMuted: false,
             crtFilter: true,
