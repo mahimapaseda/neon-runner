@@ -183,7 +183,23 @@ const generateLevelData = (level, hero) => {
     const heartCount = Math.random() > 0.5 ? 2 : 1; // 1-2 hearts
     for (let i = 0; i < heartCount; i++) {
         const tile = floorTiles[Math.floor(Math.random() * floorTiles.length)];
-        hearts.push({ id: Date.now() + 200 + i, x: tile.c * TILE_SIZE, z: tile.r * TILE_SIZE, active: true });
+        hearts.push({ id: globalIdCounter++, x: tile.c * TILE_SIZE, z: tile.r * TILE_SIZE, active: true });
+    }
+
+    // Spawn Power-ups (New Feature)
+    const powerUps = [];
+    const powerUpTypes = ['speed', 'shield', 'multishot', 'rapidfire'];
+    const powerUpCount = level > 1 ? Math.min(2, Math.floor(level / 2)) : 0; // Start from level 2
+    for (let i = 0; i < powerUpCount; i++) {
+        const tile = floorTiles[Math.floor(Math.random() * floorTiles.length)];
+        const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+        powerUps.push({
+            id: globalIdCounter++,
+            x: tile.c * TILE_SIZE,
+            z: tile.r * TILE_SIZE,
+            type,
+            active: true
+        });
     }
 
     return {
@@ -191,6 +207,7 @@ const generateLevelData = (level, hero) => {
         nodes,
         fragments,
         hearts,
+        powerUps,
         player: { x: playerStart.c * TILE_SIZE, z: playerStart.r * TILE_SIZE }
     };
 };
@@ -304,7 +321,7 @@ const Radar = ({ playerPos, nodes, fragments, hearts }) => {
 
 
 // --- Top HUD Bar Component ---
-const TopHUD = ({ experience, puzzles, health, level = 1, totalPuzzles = 6, onExit }) => {
+const TopHUD = ({ experience, puzzles, health, level = 1, totalPuzzles = 6, onExit, powerUps = {} }) => {
     return (
         <div className="hud-visor" style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: '120px',
@@ -362,6 +379,29 @@ const TopHUD = ({ experience, puzzles, health, level = 1, totalPuzzles = 6, onEx
                             </svg>
                         ))}
                     </div>
+                </div>
+                {/* Power-up Status */}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {powerUps.speedBoost > 0 && (
+                        <div style={{ color: '#00ff88', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            SPD {Math.ceil(powerUps.speedBoost)}
+                        </div>
+                    )}
+                    {powerUps.shield > 0 && (
+                        <div style={{ color: '#0088ff', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            SHLD {Math.ceil(powerUps.shield)}
+                        </div>
+                    )}
+                    {powerUps.multishot > 0 && (
+                        <div style={{ color: '#ff8800', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            MULTI {Math.ceil(powerUps.multishot)}
+                        </div>
+                    )}
+                    {powerUps.rapidfire > 0 && (
+                        <div style={{ color: '#ff0088', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            RAPID {Math.ceil(powerUps.rapidfire)}
+                        </div>
+                    )}
                 </div>
                 {onExit && (
                     <button
@@ -579,6 +619,38 @@ const HumanoidPlayer = React.forwardRef((props, ref) => {
     );
 });
 
+// --- Power-up 3D Component ---
+const PowerUp3D = ({ position, type }) => {
+    const meshRef = useRef();
+    const colors = {
+        speed: '#00ff88',
+        shield: '#0088ff',
+        multishot: '#ff8800',
+        rapidfire: '#ff0088'
+    };
+
+    useFrame((state) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.y = state.clock.elapsedTime * 3;
+            meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 4) * 0.2;
+        }
+    });
+
+    return (
+        <mesh position={position} ref={meshRef}>
+            <octahedronGeometry args={[0.3, 0]} />
+            <meshStandardMaterial
+                color={colors[type] || '#ffffff'}
+                emissive={colors[type] || '#ffffff'}
+                emissiveIntensity={2}
+                transparent
+                opacity={0.9}
+            />
+            <Sparkles count={5} scale={0.5} size={0.5} speed={0.5} color={colors[type] || '#ffffff'} />
+        </mesh>
+    );
+};
+
 // --- Debris Component ---
 const Debris = ({ position, color }) => {
     return (
@@ -655,7 +727,9 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
         // Player Movement
         let dx = 0;
         let dz = 0;
-        const moveAmt = gState.moveSpeed * delta;
+        const baseSpeed = gState.moveSpeed;
+        const speedMultiplier = gState.player.speedBoost > 0 ? 1.5 : 1.0;
+        const moveAmt = baseSpeed * speedMultiplier * delta;
 
         if (keysDown.current['ArrowUp'] || keysDown.current['KeyW']) dz -= moveAmt;
         if (keysDown.current['ArrowDown'] || keysDown.current['KeyS']) dz += moveAmt;
@@ -680,18 +754,33 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
         }
 
         // Shooting mechanism
-        if ((keysDown.current['Space'] || keysDown.current['Click']) && state.clock.elapsedTime - gState.player.lastShot > 0.25) {
+        const fireRate = gState.player.rapidfire > 0 ? 0.1 : 0.25; // Faster fire rate with rapidfire
+        if ((keysDown.current['Space'] || keysDown.current['Click']) && state.clock.elapsedTime - gState.player.lastShot > fireRate) {
             gState.player.lastShot = state.clock.elapsedTime;
             audioManager.playBeep(880); // Pew sound
-            gState.projectiles.push({
-                id: Date.now(),
-                x: gState.player.x,
-                z: gState.player.z,
-                dx: gState.player.facing.x * 25, // Increased Bullet Speed
-                dz: gState.player.facing.z * 25,
-                active: true,
-                life: 1.5 // Seconds
-            });
+
+            // Multi-shot: fire 3 projectiles in spread
+            const shotCount = gState.player.multishot > 0 ? 3 : 1;
+            const spreadAngle = gState.player.multishot > 0 ? Math.PI / 6 : 0; // 30 degrees spread
+
+            for (let i = 0; i < shotCount; i++) {
+                const angleOffset = (i - (shotCount - 1) / 2) * spreadAngle;
+                const cos = Math.cos(angleOffset);
+                const sin = Math.sin(angleOffset);
+                const shotDx = gState.player.facing.x * cos - gState.player.facing.z * sin;
+                const shotDz = gState.player.facing.x * sin + gState.player.facing.z * cos;
+
+                gState.projectiles.push({
+                    id: globalIdCounter++,
+                    x: gState.player.x,
+                    z: gState.player.z,
+                    dx: shotDx * 25,
+                    dz: shotDz * 25,
+                    active: true,
+                    life: 1.5
+                });
+            }
+
             // Minor recoil shake
             gState.cameraShake = 0.1;
         }
@@ -886,7 +975,7 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
             const nRect = { x: gState.nodes[i].x - (TILE_SIZE / 2), z: gState.nodes[i].z - (TILE_SIZE / 2), width: TILE_SIZE, depth: TILE_SIZE };
 
             if (checkCollision(pRect, nRect)) {
-                if (state.clock.elapsedTime > gState.player.invulnUntil) {
+                if (state.clock.elapsedTime > gState.player.invulnUntil && gState.player.shield <= 0) {
                     onHitPlayer();
                     gState.player.invulnUntil = state.clock.elapsedTime + 1.5; // 1.5s IFrames
 
@@ -1035,6 +1124,40 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
             }
         }
 
+        // Check Power-up Collection
+        for (let i = gState.powerUps.length - 1; i >= 0; i--) {
+            const powerUp = gState.powerUps[i];
+            if (powerUp.active) {
+                const pRect = { x: gState.player.x - (pSize / 2), z: gState.player.z - (pSize / 2), width: pSize, depth: pSize };
+                const puRect = { x: powerUp.x - 0.5, z: powerUp.z - 0.5, width: 1, depth: 1 };
+                if (checkCollision(pRect, puRect)) {
+                    gState.powerUps[i].active = false;
+                    // Apply power-up effect
+                    switch (powerUp.type) {
+                        case 'speed':
+                            gState.player.speedBoost = 5; // 5 seconds
+                            break;
+                        case 'shield':
+                            gState.player.shield = 10; // 10 seconds
+                            break;
+                        case 'multishot':
+                            gState.player.multishot = 8; // 8 seconds
+                            break;
+                        case 'rapidfire':
+                            gState.player.rapidfire = 6; // 6 seconds
+                            break;
+                    }
+                    audioManager.playSuccess();
+                }
+            }
+        }
+
+        // Update Power-up Timers
+        if (gState.player.speedBoost > 0) gState.player.speedBoost -= delta;
+        if (gState.player.shield > 0) gState.player.shield -= delta;
+        if (gState.player.multishot > 0) gState.player.multishot -= delta;
+        if (gState.player.rapidfire > 0) gState.player.rapidfire -= delta;
+
         // Update Lights
         if (spotLightRef.current) {
             spotLightRef.current.position.x = gState.player.x;
@@ -1050,6 +1173,7 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
     const [renderProjectiles, setRenderProjectiles] = useState([]);
     const [renderFragments, setRenderFragments] = useState([]);
     const [renderHearts, setRenderHearts] = useState([]);
+    const [renderPowerUps, setRenderPowerUps] = useState([]);
     const [renderDebris, setRenderDebris] = useState([]);
 
     useEffect(() => {
@@ -1060,6 +1184,7 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                 setRenderProjectiles(g.projectiles ? [...g.projectiles] : []);
                 setRenderFragments(g.fragments ? [...g.fragments] : []);
                 setRenderHearts(g.hearts ? [...g.hearts] : []);
+                setRenderPowerUps(g.powerUps ? [...g.powerUps] : []);
                 setRenderDebris(g.debris ? [...g.debris] : []);
                 setHudData({
                     nodes: g.nodes ? [...g.nodes] : [],
@@ -1137,6 +1262,10 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                 <Heart3D key={`heart-${h.id}`} position={[h.x, 0.8, h.z]} />
             ) : null)}
 
+            {/* Power-ups */}
+            {renderPowerUps.map(pu => pu.active ? (
+                <PowerUp3D key={`powerup-${pu.id}`} position={[pu.x, 0.6, pu.z]} type={pu.type} />
+            ) : null)}
 
             {/* The Player Hero */}
             <HumanoidPlayer ref={playerRef} />
@@ -1175,13 +1304,19 @@ const GameEngine = () => {
                 ...initialData.player,
                 facing: { x: 0, z: -1 },
                 lastShot: 0,
-                invulnUntil: 0
+                invulnUntil: 0,
+                // Power-up effects
+                speedBoost: 0,
+                shield: 0,
+                multishot: 0,
+                rapidfire: 0
             },
             projectiles: [],
             debris: [],
             nodes: initialData.nodes,
             fragments: initialData.fragments,
             hearts: initialData.hearts,
+            powerUps: initialData.powerUps || [],
             map: initialData.map
         };
     }
@@ -1366,6 +1501,7 @@ const GameEngine = () => {
                 health={scoreInfo.health}
                 level={gameStateRef.current.level}
                 totalPuzzles={gameStateRef.current.nodes.length}
+                powerUps={gameStateRef.current.player}
                 onExit={() => navigate('/')}
             />
 

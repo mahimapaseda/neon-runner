@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -23,6 +24,14 @@ mongoose.connect(MONGO_URI)
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/scores', scoreRoutes);
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch all handler: send back React's index.html file for client-side routing
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
