@@ -130,7 +130,7 @@ const Home = () => {
 
             {/* Main Header */}
             <div style={{ width: '100%', borderBottom: '1px solid var(--primary)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1 className="glitch-text" style={{ fontSize: '2rem', textShadow: 'none', margin: 0, color: 'var(--primary)' }}>CYBER_DASHBOARD</h1>
+                <h1 className="glitch-text" style={{ fontSize: '2rem', textShadow: 'none', margin: 0, color: 'var(--primary)' }}>Neon Runner</h1>
                 <div style={{ color: 'var(--terminal-green)' }}>STATUS: ONLINE_&amp;_SECURE</div>
             </div>
 
