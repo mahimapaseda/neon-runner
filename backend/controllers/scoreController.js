@@ -1,22 +1,13 @@
 const Score = require('../models/Score');
-const User = require('../models/User');
 
 // @desc    Submit a new score
 // @route   POST /api/scores/submit
 // @access  Private
 const submitScore = async (req, res) => {
-    const { userId, distance, puzzlesSolved } = req.body;
+    const { distance, puzzlesSolved } = req.body;
+    const userId = req.user._id;
 
     try {
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required' });
-        }
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
         const score = await Score.create({
             userId,
             distance: Number(distance) || 0,
