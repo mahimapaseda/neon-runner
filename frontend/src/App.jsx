@@ -18,23 +18,18 @@ const ProtectedRoute = ({ children }) => {
 
 // Unified Global Widgets
 const GlobalHUD = ({ onOpenSettings, isFullscreen, onToggleFullscreen }) => (
-  <div style={{
-    position: 'fixed', top: '20px', right: '20px', zIndex: 999,
-    display: 'flex', gap: '10px'
-  }}>
+  <div className="global-hud">
     <button 
       onClick={onToggleFullscreen}
-      className="btn-secondary"
-      style={{ padding: '8px 12px', fontSize: '0.7rem', background: 'rgba(0,0,0,0.6)' }}
+      className="btn-secondary hud-chip"
     >
       {isFullscreen ? 'COLLAPSE' : 'EXPAND'}
     </button>
     <button 
       onClick={onOpenSettings}
-      className="btn-primary"
-      style={{ padding: '8px 16px', fontSize: '0.7rem' }}
+      className="btn-primary hud-chip"
     >
-      ⚙️ SYS
+      SYSTEM
     </button>
   </div>
 );

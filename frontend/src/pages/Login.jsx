@@ -32,12 +32,12 @@ const Login = () => {
             <div className="terminal-box glass-panel">
                 <h1 className="glitch-text">ACCESS_TERMINAL</h1>
 
-                <div style={{ color: 'var(--terminal-green)', fontSize: '0.9rem', marginBottom: '-10px' }}>
+                <div className="auth-subtitle">
                     &gt; system.connect("MPK_NET");<br />
                     &gt; awaits credentials...
                 </div>
 
-                {error && <div style={{ color: 'var(--secondary)', fontSize: '0.9rem', background: 'rgba(255,0,60,0.1)', padding: '0.5rem', borderLeft: '3px solid var(--secondary)' }}>[ERROR] {error}</div>}
+                {error && <div className="auth-error">[ERROR] {error}</div>}
 
                 <form className="auth-form" onSubmit={handleSubmit}>
                     <input
@@ -56,14 +56,14 @@ const Login = () => {
                         onChange={handleChange}
                         required
                     />
-                    <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem' }}>
+                    <button type="submit" className="btn-primary auth-submit" disabled={loading}>
                         {loading ? 'AUTHENTICATING...' : 'ESTABLISH CONNECTION'}
                     </button>
                 </form>
 
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>SYS: ONLINE</span>
-                    <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', transition: 'text-shadow 0.2s' }} onMouseEnter={(e) => e.target.style.textShadow = '0 0 8px var(--primary)'} onMouseLeave={(e) => e.target.style.textShadow = 'none'}>
+                <div className="auth-footer">
+                    <span className="auth-footer-label">SYS: ONLINE</span>
+                    <Link to="/register" className="auth-link">
                         [ REGISTRY PROTOCOL ]
                     </Link>
                 </div>

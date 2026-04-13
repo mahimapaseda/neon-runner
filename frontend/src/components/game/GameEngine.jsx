@@ -207,7 +207,7 @@ const generateLevelData = (level, hero) => {
     const currentMap = LEVEL_MAPS[mapIndex];
 
     // Scale difficulty
-    const nodeCount = 3 + level * 2;
+    const nodeCount = Math.min(3 + level * 2, 18);
     const baseHealth = 3 + Math.floor(level / 2);
     const baseSpeed = 2.0 + level * 0.5;
 
@@ -230,6 +230,7 @@ const generateLevelData = (level, hero) => {
             x: tile.c * TILE_SIZE,
             z: tile.r * TILE_SIZE,
             health: baseHealth,
+            maxHealth: baseHealth,
             moveSpeed: baseSpeed * (0.8 + Math.random() * 0.4),
             active: true,
             roamTarget: { x: tile.c * TILE_SIZE, z: tile.r * TILE_SIZE },
@@ -1022,8 +1023,9 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                         // Check if this is the last active node
                         const otherNodesRemaining = gState.nodes.filter((n, idx) => idx !== j && n.active && n.health > 0).length;
                         
-                        if (otherNodesRemaining === 0) {
+                        if (otherNodesRemaining === 0 && !gState.puzzlePending) {
                             // Trigger puzzle instead of instant death only for the final enemy
+                            gState.puzzlePending = true;
                             onPuzzleTrigger(j);
                         } else {
                             // Instant kill for non-final enemies
@@ -1089,14 +1091,14 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                 const pRect = { x: gState.player.x - (pSize / 2), z: gState.player.z - (pSize / 2), width: pSize, depth: pSize };
                 const hRect = { x: heart.x - 0.5, z: heart.z - 0.5, width: 1, depth: 1 };
                 if (checkCollision(pRect, hRect)) {
-                    gState.hearts[i].active = false;
                     // Restore health but cap at max (which is hero strength based)
                     const maxHealth = 3 + Math.floor((hero?.powerstats?.strength || 50) / 25);
                     if (gState.health < maxHealth) {
+                        gState.hearts[i].active = false;
                         gState.health++;
                         onHealPlayer(gState.health);
+                        audioManager.playSuccess();
                     }
-                    audioManager.playSuccess();
                 }
             }
         }
@@ -1186,7 +1188,7 @@ const World3D = ({ gameState, gameStateRef, gameMap, hero, onCollectLore, onHitP
                         />
                     </Sphere>
                     {/* Health Bar (Simple scaling box above) */}
-                    <Box args={[1.5 * (n.health / 3), 0.1, 0.1]} position={[0, 1.2, 0]} material={new THREE.MeshBasicMaterial({ color: '#ff003c' })} />
+                    <Box args={[1.5 * (Math.max(0, n.health) / (n.maxHealth || 3)), 0.1, 0.1]} position={[0, 1.2, 0]} material={new THREE.MeshBasicMaterial({ color: '#ff003c' })} />
                 </group>
             ) : null)}
 
@@ -1243,6 +1245,8 @@ const GameEngine = () => {
             health: 3 + Math.floor((hero?.powerstats?.strength || 50) / 25),
             experience: 0,
             puzzlesSolved: 0,
+            levelPuzzleStart: 0,
+            puzzlePending: false,
             cameraShake: 0,
             player: {
                 ...initialData.player,
@@ -1287,6 +1291,7 @@ const GameEngine = () => {
         audioManager.playSuccess();
         setGameState('EXPLORATION');
         setActivePuzzle({ data: null, nodeId: null, input: '', loading: false, error: null });
+        gameStateRef.current.puzzlePending = false;
         
         if (gameStateRef.current && gameStateRef.current.nodes[nodeId]) {
             const node = gameStateRef.current.nodes[nodeId];
@@ -1322,13 +1327,14 @@ const GameEngine = () => {
         setTimeout(() => setScreenShake(false), 300);
         
         if (gameStateRef.current.health <= 0) {
-            setGameState('GAME_OVER');
+            handleGameOver();
         } else {
             // Kick out of puzzle, restore enemy health slightly
             if (gameStateRef.current && gameStateRef.current.nodes[nodeId]) {
                 gameStateRef.current.nodes[nodeId].health = 1;
             }
             setTimeout(() => {
+                gameStateRef.current.puzzlePending = false;
                 setGameState('EXPLORATION');
                 setActivePuzzle({ data: null, nodeId: null, input: '', loading: false, error: null });
             }, 1000);
@@ -1347,6 +1353,8 @@ const GameEngine = () => {
         gameStateRef.current.player.x = nextData.player.x;
         gameStateRef.current.player.z = nextData.player.z;
         gameStateRef.current.projectiles = [];
+        gameStateRef.current.levelPuzzleStart = gameStateRef.current.puzzlesSolved;
+        gameStateRef.current.puzzlePending = false;
 
         audioManager.startBGM(nextLvl);
         setGameState('EXPLORATION');
@@ -1417,6 +1425,7 @@ const GameEngine = () => {
     const radarHearts = hudData.hearts;
     const radarPlayer = hudData.player;
     const playerHealth = hudData.health;
+    const currentLevelPuzzles = Math.max(0, scoreInfo.puzzles - (gameStateRef.current.levelPuzzleStart || 0));
 
     return (
         <div style={{
@@ -1435,7 +1444,7 @@ const GameEngine = () => {
             {/* The Visor HUD */}
             <TopHUD
                 experience={scoreInfo.experience}
-                puzzles={scoreInfo.puzzles}
+                puzzles={currentLevelPuzzles}
                 health={scoreInfo.health}
                 level={gameStateRef.current.level}
                 totalPuzzles={gameStateRef.current.nodes.length}

@@ -32,12 +32,12 @@ const Register = () => {
             <div className="terminal-box glass-panel">
                 <h1 className="glitch-text">INITIALIZE_AGENT</h1>
 
-                <div style={{ color: 'var(--terminal-green)', fontSize: '0.9rem', marginBottom: '-10px' }}>
+                <div className="auth-subtitle">
                     &gt; connection established.<br />
                     &gt; begin identity synthesis...
                 </div>
 
-                {error && <div style={{ color: 'var(--secondary)', fontSize: '0.9rem', background: 'rgba(255,0,60,0.1)', padding: '0.5rem', borderLeft: '3px solid var(--secondary)' }}>[ERROR] {error}</div>}
+                {error && <div className="auth-error">[ERROR] {error}</div>}
 
                 <form className="auth-form" onSubmit={handleSubmit}>
                     <input
@@ -64,14 +64,14 @@ const Register = () => {
                         onChange={handleChange}
                         required
                     />
-                    <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem' }}>
+                    <button type="submit" className="btn-primary auth-submit" disabled={loading}>
                         {loading ? 'SYNTHESIZING...' : 'GENERATE IDENTITY'}
                     </button>
                 </form>
 
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>ROBOHASH: STANDBY</span>
-                    <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', transition: 'text-shadow 0.2s' }} onMouseEnter={(e) => e.target.style.textShadow = '0 0 8px var(--primary)'} onMouseLeave={(e) => e.target.style.textShadow = 'none'}>
+                <div className="auth-footer">
+                    <span className="auth-footer-label">ROBOHASH: STANDBY</span>
+                    <Link to="/login" className="auth-link">
                         [ RETURN TO GATEWAY ]
                     </Link>
                 </div>
