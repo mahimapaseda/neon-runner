@@ -2,9 +2,11 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mpk-runner-secret-key-123';
-
 const generateToken = (id) => {
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+        throw new Error('JWT_SECRET is not configured');
+    }
     return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
 };
 

@@ -1234,6 +1234,7 @@ const GameEngine = () => {
     // UI Score View and HUD Data
     const [scoreInfo, setScoreInfo] = useState({ experience: 0, puzzles: 0, health: 3 + Math.floor((hero?.powerstats?.strength || 50) / 25), level: 1 });
     const [hudData, setHudData] = useState({ nodes: [], fragments: [], hearts: [], player: { x: 0, z: 0 }, health: 3 });
+    const hasSubmittedScoreRef = useRef(false);
 
     // Mutable Source of truth tracked across framerate independent renders
     const gameStateRef = useRef(null);
@@ -1389,6 +1390,10 @@ const GameEngine = () => {
     };
 
     const handleGameOver = async () => {
+        if (hasSubmittedScoreRef.current) {
+            return;
+        }
+        hasSubmittedScoreRef.current = true;
         setGameState('GAME_OVER');
         try {
             if (user && user.token) {

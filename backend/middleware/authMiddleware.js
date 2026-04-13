@@ -6,7 +6,10 @@ const protect = async (req, res, next) => {
         try {
             const token = req.headers.authorization.split(' ')[1];
 
-            const JWT_SECRET = process.env.JWT_SECRET || 'mpk-runner-secret-key-123';
+            const JWT_SECRET = process.env.JWT_SECRET;
+            if (!JWT_SECRET) {
+                return res.status(500).json({ message: 'Server auth configuration error' });
+            }
             const decoded = jwt.verify(token, JWT_SECRET);
 
             req.user = await User.findById(decoded.id).select('-passwordHash');

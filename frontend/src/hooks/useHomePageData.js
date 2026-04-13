@@ -29,6 +29,10 @@ const useHomePageData = () => {
     };
 
     const handleUpdateAvatar = async () => {
+        if (!user?.username || !user?.token) {
+            return;
+        }
+
         try {
             const encodedUsername = encodeURIComponent(user.username);
             const finalAvatarUrl = tempAvatar.replace(user.username, encodedUsername);
@@ -51,6 +55,11 @@ const useHomePageData = () => {
     };
 
     const handleFetchHeroes = async () => {
+        if (loadingHeroes) {
+            setShowHeroes(true);
+            return;
+        }
+
         if (heroes.length === 0) {
             setLoadingHeroes(true);
             try {
@@ -92,9 +101,9 @@ const useHomePageData = () => {
 
     useEffect(() => {
         if (showAvatarPicker) {
-            setTempAvatar(user.avatarUrl);
+            setTempAvatar(user?.avatarUrl || '');
         }
-    }, [showAvatarPicker, user.avatarUrl]);
+    }, [showAvatarPicker, user?.avatarUrl]);
 
     return {
         user,

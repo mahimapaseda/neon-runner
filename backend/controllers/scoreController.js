@@ -8,10 +8,21 @@ const submitScore = async (req, res) => {
     const userId = req.user._id;
 
     try {
+        const parsedDistance = Number(distance);
+        const parsedPuzzlesSolved = Number(puzzlesSolved);
+
+        if (!Number.isFinite(parsedDistance) || !Number.isFinite(parsedPuzzlesSolved)) {
+            return res.status(400).json({ message: 'Distance and puzzlesSolved must be valid numbers' });
+        }
+
+        if (parsedDistance < 0 || parsedPuzzlesSolved < 0) {
+            return res.status(400).json({ message: 'Distance and puzzlesSolved cannot be negative' });
+        }
+
         const score = await Score.create({
             userId,
-            distance: Number(distance) || 0,
-            puzzlesSolved: Number(puzzlesSolved) || 0,
+            distance: Math.floor(parsedDistance),
+            puzzlesSolved: Math.floor(parsedPuzzlesSolved),
         });
 
         res.status(201).json(score);
