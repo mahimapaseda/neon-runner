@@ -486,7 +486,7 @@ const Heart3D = ({ position, color = "#ff003c" }) => {
 };
 
 const Cityscape = () => {
-    const buildingsRef = useRef([]);
+    const [buildings, setBuildings] = useState([]);
 
     useEffect(() => {
         const B = [];
@@ -496,12 +496,7 @@ const Cityscape = () => {
             const z = -20 - Math.random() * 40; // Deep background
             B.push({ id: i, x, z, h: height, w: 1 + Math.random() * 3 });
         }
-        buildingsRef.current = B;
-    }, []);
-
-    const [buildings, setBuildings] = useState([]);
-    useEffect(() => {
-        setBuildings(buildingsRef.current);
+        setBuildings(B);
     }, []);
 
     return (
@@ -524,7 +519,7 @@ const Cityscape = () => {
 };
 
 const DigitalRain = () => {
-    const pointsRef = useRef([]);
+    const [points, setPoints] = useState([]);
 
     useEffect(() => {
         const P = [];
@@ -534,22 +529,17 @@ const DigitalRain = () => {
                 speed: 0.1 + Math.random() * 0.2
             });
         }
-        pointsRef.current = P;
+        setPoints(P);
     }, []);
 
     const rainRef = useRef();
     useFrame(() => {
-        if (!rainRef.current || pointsRef.current.length === 0) return;
+        if (!rainRef.current || points.length === 0) return;
         rainRef.current.children.forEach((child, i) => {
-            child.position.y -= pointsRef.current[i].speed;
+            child.position.y -= points[i].speed;
             if (child.position.y < 0) child.position.y = 20;
         });
     });
-
-    const [points, setPoints] = useState([]);
-    useEffect(() => {
-        setPoints(pointsRef.current);
-    }, []);
 
     return (
         <group ref={rainRef}>
@@ -1234,10 +1224,10 @@ const GameEngine = () => {
     // UI Score View and HUD Data
     const [scoreInfo, setScoreInfo] = useState({ experience: 0, puzzles: 0, health: 3 + Math.floor((hero?.powerstats?.strength || 50) / 25), level: 1 });
     const [hudData, setHudData] = useState({ nodes: [], fragments: [], hearts: [], player: { x: 0, z: 0 }, health: 3 });
-    const hasSubmittedScoreRef = useRef(false);
 
     // Mutable Source of truth tracked across framerate independent renders
     const gameStateRef = useRef(null);
+    const hasSubmittedScoreRef = useRef(false);
     if (!gameStateRef.current) {
         const initialData = generateLevelData(1, hero);
         gameStateRef.current = {
